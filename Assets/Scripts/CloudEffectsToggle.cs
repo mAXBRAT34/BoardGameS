@@ -1,33 +1,72 @@
+
 using UnityEngine;
 using UnityEngine.UI;
 
-// Attach to the CloudEffectsToggle UI object in the Settings scene.
 [RequireComponent(typeof(Toggle))]
 public class CloudEffectsToggle : MonoBehaviour
 {
-    private const string SaveKey = "Cirks_CloudEffects";
+    [Header("Toggle Appearance")]
+    [SerializeField] private Image backgroundImage;
+
+    [Header("Optional Sprites")]
+    [SerializeField] private Sprite onSprite;
+    [SerializeField] private Sprite offSprite;
+
+    [Header("Colors")]
+    [SerializeField]
+    private Color onColor =
+        new Color(0.5f, 0.85f, 0.2f, 1f);
+
+    [SerializeField]
+    private Color offColor =
+        new Color(0.5f, 0.5f, 0.5f, 1f);
+
     private Toggle cloudToggle;
+
+    private const string SaveKey = "Cirks_CloudEffects";
 
     private void Awake()
     {
         cloudToggle = GetComponent<Toggle>();
 
-        // Clouds are animated by default, until a user turns them off.
-        bool animationEnabled = PlayerPrefs.GetInt(SaveKey, 1) == 1;
-        cloudToggle.SetIsOnWithoutNotify(animationEnabled);
+        bool enabled = PlayerPrefs.GetInt(SaveKey, 1) == 1;
 
-        cloudToggle.onValueChanged.AddListener(SaveCloudPreference);
+        cloudToggle.SetIsOnWithoutNotify(enabled);
+
+        UpdateAppearance(enabled);
+
+        cloudToggle.onValueChanged.AddListener(OnToggleChanged);
     }
 
-    private void SaveCloudPreference(bool enabled)
+    private void OnToggleChanged(bool enabled)
     {
         PlayerPrefs.SetInt(SaveKey, enabled ? 1 : 0);
         PlayerPrefs.Save();
+
+        UpdateAppearance(enabled);
+    }
+
+    private void UpdateAppearance(bool enabled)
+    {
+        if (backgroundImage == null)
+            return;
+
+        Sprite selectedSprite = enabled ? onSprite : offSprite;
+
+        if (selectedSprite != null)
+        {
+            backgroundImage.sprite = selectedSprite;
+            backgroundImage.color = Color.white;
+        }
+        else
+        {
+            backgroundImage.color = enabled ? onColor : offColor;
+        }
     }
 
     private void OnDestroy()
     {
         if (cloudToggle != null)
-            cloudToggle.onValueChanged.RemoveListener(SaveCloudPreference);
+            cloudToggle.onValueChanged.RemoveListener(OnToggleChanged);
     }
 }
