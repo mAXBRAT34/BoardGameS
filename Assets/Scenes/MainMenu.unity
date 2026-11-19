@@ -3076,6 +3076,8 @@ GameObject:
   - component: {fileID: 1467547164}
   - component: {fileID: 1467547170}
   - component: {fileID: 1467547169}
+  - component: {fileID: 1467547171}
+  - component: {fileID: 1467547172}
   m_Layer: 5
   m_Name: Button (1)
   m_TagString: Untagged
@@ -3340,6 +3342,37 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1467547171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1467547162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e33a315193b67f4888e42e11f7dc283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetScene: Settings
+  fadeDuration: 1
+--- !u!114 &1467547172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1467547162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88fc4bd28af2b1f459a44cad9f0c0e23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveX: 5
+  moveY: 6
+  rotationAngle: 2
+  animationSpeed: 2
+  randomStartPhase: 1
 --- !u!1 &1499324896
 GameObject:
   m_ObjectHideFlags: 0
@@ -4018,6 +4051,8 @@ GameObject:
   - component: {fileID: 1722631188}
   - component: {fileID: 1722631194}
   - component: {fileID: 1722631193}
+  - component: {fileID: 1722631195}
+  - component: {fileID: 1722631196}
   m_Layer: 5
   m_Name: Button (3)
   m_TagString: Untagged
@@ -4132,19 +4167,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1722631191}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1457646532}
-        m_TargetAssemblyTypeName: MenuSceneNavigation, Assembly-CSharp
-        m_MethodName: OpenSettings
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1722631191
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4296,6 +4319,37 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1722631195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1722631186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e33a315193b67f4888e42e11f7dc283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetScene: Settings
+  fadeDuration: 1
+--- !u!114 &1722631196
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1722631186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88fc4bd28af2b1f459a44cad9f0c0e23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveX: 5
+  moveY: 6
+  rotationAngle: 2
+  animationSpeed: 2
+  randomStartPhase: 1
 --- !u!1 &1735560761
 GameObject:
   m_ObjectHideFlags: 0
@@ -4507,6 +4561,8 @@ GameObject:
   - component: {fileID: 1797171154}
   - component: {fileID: 1797171157}
   - component: {fileID: 1797171156}
+  - component: {fileID: 1797171158}
+  - component: {fileID: 1797171159}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -4577,19 +4633,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1797171152}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1457646532}
-        m_TargetAssemblyTypeName: MenuSceneNavigation, Assembly-CSharp
-        m_MethodName: ExitGame
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1797171152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4783,6 +4827,37 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1797171158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1797171149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e33a315193b67f4888e42e11f7dc283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetScene: 
+  fadeDuration: 1
+--- !u!114 &1797171159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1797171149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88fc4bd28af2b1f459a44cad9f0c0e23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveX: 5
+  moveY: 6
+  rotationAngle: 2
+  animationSpeed: 2
+  randomStartPhase: 1
 --- !u!1 &1813377910
 GameObject:
   m_ObjectHideFlags: 0
@@ -4932,6 +5007,8 @@ GameObject:
   - component: {fileID: 1830617603}
   - component: {fileID: 1830617609}
   - component: {fileID: 1830617608}
+  - component: {fileID: 1830617610}
+  - component: {fileID: 1830617611}
   m_Layer: 5
   m_Name: Button (2)
   m_TagString: Untagged
@@ -5196,6 +5273,37 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1830617610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1830617601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e33a315193b67f4888e42e11f7dc283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetScene: CharacterSelect
+  fadeDuration: 1
+--- !u!114 &1830617611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1830617601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88fc4bd28af2b1f459a44cad9f0c0e23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveX: 5
+  moveY: 6
+  rotationAngle: 2
+  animationSpeed: 2
+  randomStartPhase: 1
 --- !u!1 &1837450785
 GameObject:
   m_ObjectHideFlags: 0
