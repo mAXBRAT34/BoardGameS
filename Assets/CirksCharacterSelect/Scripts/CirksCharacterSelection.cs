@@ -5,8 +5,8 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Character selection from the user's original Idle Blinking sprite sequences.
-/// The controller owns seven character variants, a player name and a preview animation.
+/// Character selection with animated hero preview and required player name.
+/// The existing PLAY button saves the chosen hero/name and only then fades to GameScene.
 /// </summary>
 public class CirksCharacterSelection : MonoBehaviour
 {
@@ -51,6 +51,7 @@ public class CirksCharacterSelection : MonoBehaviour
     private Vector2 basePosition;
     private Vector3 baseScale;
     private Quaternion baseRotation;
+    private SceneFadeTransition playFade;
 
     private void Awake()
     {
@@ -64,6 +65,9 @@ public class CirksCharacterSelection : MonoBehaviour
             baseRotation = characterTransform.localRotation;
         }
 
+        if (confirmButton != null)
+            playFade = confirmButton.GetComponent<SceneFadeTransition>();
+
         if (previousButton != null) previousButton.onClick.AddListener(PreviousCharacter);
         if (nextButton != null) nextButton.onClick.AddListener(NextCharacter);
         if (confirmButton != null) confirmButton.onClick.AddListener(ConfirmSelection);
@@ -72,10 +76,18 @@ public class CirksCharacterSelection : MonoBehaviour
 
     private void Start()
     {
+        // SceneFadeTransition registers its own button listener in Awake.
+        // All Awake calls finish before any Start: remove the automatic fade listener
+        // so that a click can transition ONLY after ConfirmSelection validates the name.
+        if (confirmButton != null && playFade != null)
+            confirmButton.onClick.RemoveListener(playFade.StartTransition);
+
         if (playerNameInput != null)
         {
             playerNameInput.characterLimit = 18;
-            playerNameInput.text = PlayerPrefs.GetString(PlayerNameKey, "");
+            // The name field must be empty on every entry to CharacterSelect.
+            // Previously saved names are still available to GameScene -> LOAD DATA.
+            playerNameInput.SetTextWithoutNotify(string.Empty);
         }
 
         selectedIndex = Mathf.Clamp(
@@ -150,29 +162,38 @@ public class CirksCharacterSelection : MonoBehaviour
     public void ConfirmSelection()
     {
         string playerName = playerNameInput != null ? playerNameInput.text.Trim() : "";
-        if (string.IsNullOrWhiteSpace(playerName))
+
+        // Blank or whitespace-only input cannot start the game.
+        if (playerName.Length < 3)
         {
-            ShowStatus("Please enter your name first!");
-            if (playerNameInput != null) playerNameInput.ActivateInputField();
+            ShowStatus("Name must contain at least 3 characters!");
+            if (playerNameInput != null)
+            {
+                playerNameInput.Select();
+                playerNameInput.ActivateInputField();
+            }
             return;
         }
 
         if (characters == null || characters.Length == 0) return;
 
+        if (!Application.CanStreamedLevelBeLoaded(gameSceneName))
+        {
+            ShowStatus("Add GameScene to Build Profiles > Scene List.");
+            Debug.LogWarning("Cirks: GameScene is not in the build scene list.");
+            return;
+        }
+
+        // Preserve the existing GameScene LOAD DATA integration.
         PlayerPrefs.SetString(PlayerNameKey, playerName);
         PlayerPrefs.SetInt(SelectedCharacterKey, selectedIndex);
         PlayerPrefs.SetString(SelectedCharacterNameKey, characters[selectedIndex].displayName);
         PlayerPrefs.Save();
 
-        if (Application.CanStreamedLevelBeLoaded(gameSceneName))
-        {
-            SceneManager.LoadScene(gameSceneName);
-        }
+        if (playFade != null)
+            playFade.StartTransition();
         else
-        {
-            ShowStatus("Saved! Add GameScene to Build Profiles > Scene List.");
-            Debug.LogWarning("Cirks: GameScene is not in the build scene list. Name + character are saved.");
-        }
+            SceneManager.LoadScene(gameSceneName);
     }
 
     public void BackToMainMenu()

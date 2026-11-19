@@ -2,16 +2,17 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Fast, looping UI clouds in both directions.
-/// Attach to each cloud Image inside Canvas > CloudLayer.
-/// Compatible with CloudEffectsToggle (PlayerPrefs key Cirks_CloudEffects).
+/// Fast, endlessly looping clouds travelling in both directions.
+/// Cloud visibility depends ONLY on the Cloud Animation setting,
+/// never on fullscreen or screen resolution.
+/// Attach to each UI cloud Image under Canvas > CloudLayer.
 /// </summary>
 [RequireComponent(typeof(RectTransform))]
 public class CloudFloatUI : MonoBehaviour
 {
     public enum FlightDirection
     {
-        Alternate,       // Cloud1 left, Cloud2 right, Cloud3 left, etc.
+        Alternate,
         LeftToRight,
         RightToLeft
     }
@@ -38,35 +39,42 @@ public class CloudFloatUI : MonoBehaviour
     private RectTransform cloud;
     private RectTransform cloudLayer;
     private Graphic cloudGraphic;
-    private Quaternion initialRotation;
+    private Quaternion originalRotation;
+    private Vector2 previousLayerSize;
     private float baseY;
     private float phase;
     private float elapsed;
     private float actualSpeed;
-    private int flightSign; // +1: from left to right; -1: from right to left
+    private int flightSign;
     private bool initialized;
+
+    private bool CloudsEnabled => PlayerPrefs.GetInt(CloudEffectsKey, 1) == 1;
 
     private void Awake()
     {
         cloud = GetComponent<RectTransform>();
         cloudLayer = transform.parent as RectTransform;
-        initialRotation = cloud.localRotation;
-
-        // Hide the UI cloud when Cloud Animation is OFF,
-        // without disabling the GameObject or this script.
         cloudGraphic = GetComponent<Graphic>();
+        originalRotation = cloud.localRotation;
+
         if (cloudGraphic != null)
-        {
             cloudGraphic.raycastTarget = false;
-            cloudGraphic.enabled = PlayerPrefs.GetInt(CloudEffectsKey, 1) == 1;
-        }
+
+        RemoveLegacyLayerHiding();
+        ApplyVisibility();
+    }
+
+    private void OnEnable()
+    {
+        RemoveLegacyLayerHiding();
+        ApplyVisibility();
     }
 
     private void Start()
     {
         if (cloudLayer == null)
         {
-            Debug.LogError("CloudFloatUI: Place cloud under CloudLayer (RectTransform).", this);
+            Debug.LogError("CloudFloatUI: Put clouds under Canvas > CloudLayer.", this);
             enabled = false;
             return;
         }
@@ -80,7 +88,7 @@ public class CloudFloatUI : MonoBehaviour
         if (direction == FlightDirection.Alternate)
             flightSign = (alternatingCloudCounter++ % 2 == 0) ? -1 : 1;
         else
-            flightSign = (direction == FlightDirection.LeftToRight) ? 1 : -1;
+            flightSign = direction == FlightDirection.LeftToRight ? 1 : -1;
 
         ChooseNewSpeed();
         baseY = ChooseRandomY();
@@ -88,13 +96,124 @@ public class CloudFloatUI : MonoBehaviour
         elapsed = 0f;
 
         float halfWidth = cloudLayer.rect.width * 0.5f;
-        float offscreenX = halfWidth + CloudHalfWidth;
+        float outsideEdge = halfWidth + CloudHalfWidth;
         float startX = randomStartPosition
-            ? Random.Range(-halfWidth, halfWidth)
-            : (flightSign > 0 ? -offscreenX : offscreenX);
+            ? Random.Range(-halfWidth * 0.85f, halfWidth * 0.85f)
+            : (flightSign > 0 ? -outsideEdge : outsideEdge);
 
         cloud.anchoredPosition = new Vector2(startX, baseY);
+        previousLayerSize = cloudLayer.rect.size;
         initialized = true;
+        ApplyVisibility();
+    }
+
+    private void Update()
+    {
+        if (!initialized)
+            return;
+
+        // Resize must not change the cloud toggle setting.
+        // Move clouds back into the resized visible area instead of losing them.
+        AdaptToCanvasResize();
+
+        if (!CloudsEnabled)
+            return;
+
+        float dt = Time.deltaTime;
+        elapsed += dt;
+
+        Vector2 position = cloud.anchoredPosition;
+        position.x += flightSign * actualSpeed * dt;
+        position.y = baseY + Mathf.Sin(elapsed * floatSpeed + phase) * floatHeight;
+
+        float outsideEdge = cloudLayer.rect.width * 0.5f + CloudHalfWidth;
+        bool passedEdge = flightSign > 0
+            ? position.x > outsideEdge
+            : position.x < -outsideEdge;
+
+        if (passedEdge)
+        {
+            if (reverseDirectionOnRepeat)
+                flightSign = -flightSign;
+
+            // Re-enter from the side opposite to the current flight direction.
+            position.x = flightSign > 0 ? -outsideEdge : outsideEdge;
+            if (randomizeHeightOnRepeat)
+                baseY = ChooseRandomY();
+
+            position.y = baseY;
+            ChooseNewSpeed();
+        }
+
+        cloud.anchoredPosition = position;
+        cloud.localRotation = originalRotation * Quaternion.Euler(
+            0f, 0f, Mathf.Sin(elapsed * 0.9f + phase) * rotationAngle);
+    }
+
+    private void LateUpdate()
+    {
+        // Reapply the saved cloud setting even after Unity rebuilds the Canvas.
+        RemoveLegacyLayerHiding();
+        ApplyVisibility();
+    }
+
+    private void ApplyVisibility()
+    {
+        if (cloudGraphic == null)
+            return;
+
+        bool shouldBeVisible = CloudsEnabled;
+        if (cloudGraphic.enabled != shouldBeVisible)
+            cloudGraphic.enabled = shouldBeVisible;
+    }
+
+    private void RemoveLegacyLayerHiding()
+    {
+        if (cloudLayer == null)
+            return;
+
+        // Previous script versions could set the whole layer's CanvasGroup
+        // alpha to 0. Keep that layer visible; only the cloud Images are hidden.
+        CanvasGroup group = cloudLayer.GetComponent<CanvasGroup>();
+        if (group != null)
+        {
+            group.alpha = 1f;
+            group.blocksRaycasts = false;
+            group.interactable = false;
+        }
+    }
+
+    private void AdaptToCanvasResize()
+    {
+        if (cloudLayer == null)
+            return;
+
+        Vector2 newSize = cloudLayer.rect.size;
+        if (newSize.x < 1f || newSize.y < 1f)
+            return;
+
+        if (previousLayerSize.x < 1f || previousLayerSize.y < 1f)
+        {
+            previousLayerSize = newSize;
+            return;
+        }
+
+        if (Mathf.Abs(previousLayerSize.x - newSize.x) < 1f &&
+            Mathf.Abs(previousLayerSize.y - newSize.y) < 1f)
+            return;
+
+        Vector2 position = cloud.anchoredPosition;
+        position.x *= newSize.x / previousLayerSize.x;
+        position.x = Mathf.Clamp(position.x, -newSize.x * 0.4f, newSize.x * 0.4f);
+
+        baseY *= newSize.y / previousLayerSize.y;
+        float maxY = Mathf.Max(0f,
+            newSize.y * 0.5f - cloud.rect.height * Mathf.Abs(cloud.localScale.y) * 0.5f - floatHeight);
+        baseY = Mathf.Clamp(baseY, -maxY, maxY);
+        position.y = baseY;
+
+        cloud.anchoredPosition = position;
+        previousLayerSize = newSize;
     }
 
     private float CloudHalfWidth =>
@@ -106,66 +225,18 @@ public class CloudFloatUI : MonoBehaviour
             cloudLayer.rect.height * 0.5f
             - cloud.rect.height * Mathf.Abs(cloud.localScale.y) * 0.5f
             - floatHeight);
-
         return Random.Range(-range, range);
     }
 
     private void ChooseNewSpeed()
     {
-        float factor = Random.Range(1f - speedVariation, 1f + speedVariation);
-        actualSpeed = Mathf.Max(1f, moveSpeed * speedMultiplier * factor);
-    }
-
-    private void Update()
-    {
-        if (!initialized)
-            return;
-
-        bool cloudsEnabled = PlayerPrefs.GetInt(CloudEffectsKey, 1) == 1;
-
-        // Switching OFF hides the Image completely, not just the motion.
-        // The script still runs so switching ON makes it visible again.
-        if (cloudGraphic != null && cloudGraphic.enabled != cloudsEnabled)
-            cloudGraphic.enabled = cloudsEnabled;
-
-        if (!cloudsEnabled)
-            return;
-
-        float delta = Time.deltaTime;
-        elapsed += delta;
-
-        Vector2 position = cloud.anchoredPosition;
-        position.x += flightSign * actualSpeed * delta;
-        position.y = baseY + Mathf.Sin(elapsed * floatSpeed + phase) * floatHeight;
-
-        // Only respawn once the entire cloud is outside the screen.
-        float limit = cloudLayer.rect.width * 0.5f + CloudHalfWidth;
-        bool fullyOffscreen = flightSign > 0
-            ? position.x > limit
-            : position.x < -limit;
-
-        if (fullyOffscreen)
-        {
-            if (reverseDirectionOnRepeat)
-                flightSign *= -1;
-
-            // Bring it back offscreen from the side it will fly INTO the screen.
-            position.x = flightSign > 0 ? -limit : limit;
-            if (randomizeHeightOnRepeat)
-                baseY = ChooseRandomY();
-
-            position.y = baseY;
-            ChooseNewSpeed();
-        }
-
-        cloud.anchoredPosition = position;
-        cloud.localRotation = initialRotation * Quaternion.Euler(
-            0f, 0f, Mathf.Sin(elapsed * 0.9f + phase) * rotationAngle);
+        float variation = Random.Range(1f - speedVariation, 1f + speedVariation);
+        actualSpeed = Mathf.Max(1f, moveSpeed * speedMultiplier * variation);
     }
 
     private void OnDisable()
     {
         if (cloud != null)
-            cloud.localRotation = initialRotation;
+            cloud.localRotation = originalRotation;
     }
 }
